@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tesseract.js Demo</title>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js"></script>
+    <style>
+        #progress-container {
+            width: 100%;
+            background-color: #f3f3f3;
+            border: 1px solid #ccc;
+            margin: 20px 0;
+            display: none;
+        }
+
+        #progress-bar {
+            width: 0%;
+            height: 20px;
+            background-color: #4caf50;
+        }
+    </style>
+</head>
+<body>
+    <h1>Tesseract.js OCR Demo</h1>
+    <input type="file" id="imageInput">
+    <button id="startRecognition">辨識圖片</button>
+    
+    <!-- 進度條容器 -->
+    <div id="progress-container">
+        <div id="progress-bar"></div>
+    </div>
+    
+    <pre id="output"></pre>
+
+    <script>
+        document.getElementById('startRecognition').addEventListener('click', () => {
+            const imageInput = document.getElementById('imageInput').files[0];
+            const progressBar = document.getElementById('progress-bar');
+            const progressContainer = document.getElementById('progress-container');
+            const output = document.getElementById('output');
+
+            // 清空上次的結果
+            output.textContent = '';
+            progressBar.style.width = '0%';
+            progressContainer.style.display = 'block';
+
+            if (imageInput) {
+                Tesseract.recognize(
+                    imageInput,  // 使用者上傳的圖片
+                    'chi_tra',   // 使用繁體中文語言包
+                    {
+                        langPath: './', // 語言包路徑
+                        logger: info => {
+                            console.log(info);
+                            if (info.status === 'recognizing text') {
+                                // 更新進度條
+                                progressBar.style.width = Math.round(info.progress * 100) + '%';
+                            }
+                        }
+                    }
+                ).then(({ data: { text } }) => {
+                    // 辨識完成，顯示結果
+                    output.textContent = text;
+                    progressContainer.style.display = 'none';
+                }).catch(err => {
+                    // 處理錯誤
+                    console.error(err);
+                    output.textContent = '辨識失敗，請檢查圖片或語言包設置。';
+                    progressContainer.style.display = 'none';
+                });
+            } else {
+                alert('請先選擇一張圖片！');
+            }
+        });
+    </script>
+</body>
+</html>
